@@ -1,0 +1,77 @@
+{% extends "base.html" %} 
+
+{% block title %} Profile {{block.super}}{% endblock title %}  
+
+{% block content%} 
+<div class="row">
+    <div class="col-sm-3" >
+        <h1>{{user.username}}</h1>
+        <p>Following: {{user.profile.following.all.count}}</p>
+        <p>Followed by: {{user.followed_by.all.count}}</p>
+    </div>
+    <div class="col-sm-9" >
+        <h1> Tweets</h1>
+        {% for tweet in user.tweet_set.all %}
+            <p>{{tweet.content}} - {{tweet.timestamp|timesince}}</p><br/>
+        {% endfor %}
+
+        <h1>Following</h1>
+        {% for userF in user.profile.get_following %}
+            <p></p><a href="{% url 'accounts:UserDetailView' userF.username%}">{{userF.username}}</a></p>
+        {% empty %}
+            <p>No Followers</p><br/>
+        {% endfor %}
+
+        <h1>Followed by</h1>
+        {% for userF in user.followed_by.all %}
+            <p><a href="{% url 'accounts:UserDetailView' userF.user.username%}">{{userF.user.username}}</a></p>
+        {% empty %}
+            <p>Not Followed by anyone</p><br/>
+        {% endfor %}
+
+
+    </div>
+</div>     
+
+{% endblock content%} 
+
+
+
+
+
+
+
+
+
+{% block content-api%} 
+<div class="row">
+    <div class="col-sm-3" >
+        <h1>{{user.username}}</h1>
+        <p>Following: {{user.profile.following.all.count}}</p>
+        <p>Followed by: {{user.followed_by.all.count}}</p>
+    </div>
+    <div class="col-sm-9" >
+        <h1> Tweets</h1>
+        {% for tweet in user.tweet_set.all %}
+            <p>{{tweet.content}} - {{tweet.timestamp|timesince}}</p><br/>
+        {% endfor %}
+
+        <h1>Following</h1>
+        {% for userF in user.profile.get_following %}
+        <p><a href="{% url 'accounts:UserDetailView' userF.username%}">{{userF.username}}</a></p>
+        {% empty %}
+            <p>No Followers</p><br/>
+        {% endfor %}
+
+        <h1>Followed by</h1>
+        {% for userF in user.followed_by.all %}
+            <p><a href="{% url 'accounts:UserDetailView' userF.user.username%}">{{userF.user.username}}</a></p>
+        {% empty %}
+            <p>Not Followed by anyone</p><br/>
+        {% endfor %}
+
+    </div>
+</div>     
+
+{% endblock content-api%} 
+

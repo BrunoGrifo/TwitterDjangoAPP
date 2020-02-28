@@ -1,0 +1,274 @@
+{% extends "base.html" %} 
+{% load static %}
+{% block title %} Feed {{block.super}}{% endblock title %}  
+
+{% block content%} 
+
+    {% if tweet_list %}
+        <div class="row">
+            <div class="col-sm-3 col-xs-12" >
+                <h1>{{request.user}}</h1>
+            </div>
+            <div class="col-sm-9" >
+                {% if not request.GET.q %}
+                    {% include "tweets/form.html" with form=create_form action_url=action_url btn_title='Tweet' %}
+                {% endif %}
+                <br/>
+                <br/>
+
+
+                {% for tweet in tweet_list %}
+                    <div class="media">
+                        <div class="media-left" >
+                            {% if object.image %}
+                                <a href="#"><img src="..." class="media-object" alt="..."></a>
+                            {% endif %} 
+                        </div>
+                        <div class="media-body" >
+                            {% csrf_token %}
+                            {{tweet.content}}<br/>
+                            by {{tweet.user}} - {{tweet.timestamp|timesince}} ago | <a href="{% url 'tweets:TweetDetailView' tweet.id %}"> View </a>  | <div class="options" style="display: inline-block;"id="{{tweet.id}}"><button id="deletebtn" action="{% url 'tweets:TweetDeleteView' tweet.id %}" type="button">Delete</button></div>
+                                
+                        </div>
+                    </div> 
+                <hr/>                                      
+                {% endfor %}
+            </div>         
+        </div>
+    {% else %}
+        {% if request.GET.q %}
+            <p>No tweets found.</p>
+        {% else %}       
+            <p>No tweets yet.</p>
+        {% endif %}
+    {% endif %}
+
+
+{% endblock content%} 
+
+{% block content-api %}
+    {% if tweet_list %}
+            <div class="row">
+                <div class="col-sm-3 col-xs-12" >
+                    <h1>{{request.user}}</h1>
+                </div>
+                <div class="col-sm-9" >
+                    {% if not request.GET.q %}
+                        {% include "tweets/form.html" with form=create_form action_url=action_url btn_title='Tweet' form_id="tweet-form" %}
+                    {% endif %}
+                    <br/>
+                    <br/>
+
+                    <div id="tweet-container">
+
+                    </div>
+                    <div>
+                        <a href="" id='loadmore' > Load more tweets</a>
+                    </div>
+
+                </div>         
+            </div>
+        {% else %}
+            {% if request.GET.q %}
+                <p>No tweets found.</p>
+            {% else %}       
+                <p>No tweets yet.</p>
+            {% endif %}
+        {% endif %}
+
+{% endblock content-api%}
+
+{% block script %}
+<script type="text/javascript">
+
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, '\\$&');
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+
+function csrfSafeMethod(method) {
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
+
+function attachTweet(data, prepend){
+    var tweetContent = data.content;
+    var tweetUser= data.user;
+    var timestamp = data.date_display
+    var timesince = data.timesince
+    var username= data.user.username;
+
+    // console.log(tweetUser.url)
+    var tweetsFormat = " <div class=\"media\"> <div class=\"media-body\" >" + tweetContent + "<br/> by <a href='"+ tweetUser.url +"'>" + tweetUser.username +"</a> | "+ timestamp +" | "+ timesince+" | "+ " <a href='#'> View </a> " +" | " +  "<div class=\"options\" style=\"display: inline-block;\"id=\"{{tweet.id}}\"><button id=\"deletebtn\" action='' type=\"button\">Delete</button></div>  <hr/>"
+
+    if(prepend){
+        $('#tweet-container').prepend(tweetsFormat)
+    }else{
+        $('#tweet-container').append(tweetsFormat)
+    }
+}
+
+function cleanLoad(){
+    document.getElementById("loadmore").remove();
+}
+
+
+function eraseForm(){ //não funciona
+    var elms = document.querySelectorAll("[id='id_content']");
+    elms[0].value=""
+    elms[1].value=""
+}
+function getTweetValue(){
+    var elms = document.querySelectorAll("[id='id_content']");
+    return elms[1].value
+}
+
+$(document).ready(function(){
+    //console.log("ready");
+    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+    var query = getParameterByName('q')
+    // console.log(query)
+    // console.log("query: "+ query)
+    var nextURL;
+
+
+    function parteTweets(){
+        if(tweetlist==0){
+            $("#tweet-container").text("blabla")
+        }else{
+            $.each(tweetlist, function(key, value){
+                // console.log("key: "+key)
+                // console.log("value.user: "+value.user)
+                // console.log("value.content: "+value.content)
+                var tweetKey = key;
+                attachTweet(value, false)                
+            })
+        }
+
+    }
+
+
+    $.ajaxSetup({
+                
+        beforeSend: function(xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    // console.log("entrei")
+                }
+            }
+    });
+
+    
+    function fetch(url){
+        console.log("fetching...")
+        var fetchURL;
+        if(!url){
+            fetchURL = "{% url 'tweets-api:TweetListAPIView' %}"
+        }else{
+            fetchURL = url
+        }
+        $.ajax({
+            url: fetchURL,
+            data:{
+                "q": query
+            },
+            method:"GET",
+            success: function(data){
+                //console.log("data: "+ data)
+                tweetlist = data.results
+                if(data.next){
+                    nextURL = data.next
+                }else{
+                    cleanLoad()
+                }
+                parteTweets()
+                
+            },
+            error: function(data){
+                console.log("Fetch Error")
+                console.log("Fetch Error data: "+data)
+            }
+
+        })
+    }
+    fetch() 
+    
+    
+    $("#tweet-form").submit(function(event){
+        event.preventDefault()
+        //console.log(event)
+        var form_data=$(this).serialize()
+        if(leftChars<0){
+            console.log("Too many chars")
+        }else{
+            $.ajax({
+                url:"{% url 'tweets-api:TweetCreateAPIView' %}",
+                data:form_data,
+                method:"POST",
+                success: function(data){
+                    // console.log("data: "+ data)
+                    attachTweet(data, true)
+                    eraseForm()
+                    
+                },
+                error: function(data){
+                    console.log("Form Error") 
+                    console.log("Form Error status: "+data.status)
+                    console.log("Form Error status text: "+data.statusText)
+                }
+
+            })
+        }        
+    })
+    
+
+    $(".options").find("button").bind('click', function(e){
+        e.preventDefault();
+        if (confirm("Do you really want to delete this tweet?")) { 
+            console.log($(this).parent().attr("id"));
+            var id = $(this).parent().attr("id");
+            var that = $(this);
+            var actionUrl = that.attr('action');
+
+            $.ajax({
+                url: actionUrl,
+                type: 'DELETE',
+                success: function(){
+                    location.reload();
+                }
+            });
+        }
+        
+        
+            
+    });
+    var startChars = 140
+    var leftChars = 140
+
+    $("#tweet-form").append("<span id=\"charFieldCount\">"+ startChars+" </span>")
+
+    $("#tweet-form textarea").keyup(function(event){
+        var tweetValue = getTweetValue()
+        leftChars = startChars - tweetValue.length
+        $("#charFieldCount").text(leftChars)
+       
+
+    })
+
+    $("#loadmore").click(function(event){
+        event.preventDefault()
+        if(nextURL){
+            console.log("load more...")
+            fetch(nextURL)
+        }
+    })
+
+    
+});
+    
+</script>
+{% endblock script%}

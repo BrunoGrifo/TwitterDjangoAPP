@@ -1,0 +1,14 @@
+<!-- {{ form.non_field_errors }} -->
+{% load rest_framework %}
+<form {% if form_id %} id="{{form_id}}" {% endif %} class='form' method="post" action ="{% if action_url %} {{action_url}}{%endif%}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="{{btn_title}}">
+</form>
+{% comment %}
+    {% for field, errors in form.errors.items %}
+        {% for error in errors %}
+            {{error}}
+        {% endfor %}
+    {% endfor %}
+{% endcomment %}

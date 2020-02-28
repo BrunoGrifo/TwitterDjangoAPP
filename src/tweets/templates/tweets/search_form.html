@@ -1,0 +1,6 @@
+<form id="searchNavBar" class="form-inline my-2 my-lg-0" method="get" action="{% url 'tweets:tweet_list_view'%}">
+    <div class="form-group">
+      <input class="form-control mr-sm-2" placeholder="Your Search" type='text' name='q' placeholder="Search" value="{{request.GET.q}}">
+      <button type="submit" class="btn btn-outline-success my-2 my-sm-0">Search</button>
+    </div>
+  </form>

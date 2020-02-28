@@ -1,0 +1,150 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet"> </script>
+    <link rel="stylesheet" href="{% static 'tweet/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'tweet/css/split.css' %}">
+
+    
+    <title>{% block title %}| Tweetme {% endblock title %} </title>
+  </head>
+  <body>
+    
+
+
+    <div class="row no-gutters">
+
+
+<!-- left side -->
+      <div class="col-md-6 no-gutters">
+        <div class="leftside">
+
+
+            <nav class="navbar sticky-top navbar-expand-lg navbar-light bg-light">
+              <div class="container">
+                <a class="navbar-brand" class="inactiveLink" >
+                    <img src="{% static 'tweet/img/monster.png' %}" width="30" height="30" alt="">
+                  </a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon"></span>
+                </button>
+              
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                  <ul class="navbar-nav mr-auto">
+                    <li class="nav-item active">
+                      <a class="nav-link" href="{% url 'tweets:tweet_list_view' %}">Home <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item active">
+                      <a class="nav-link" href="{% url 'accounts:UserDetailView' request.user.username%}">Profile</a>
+                    </li>
+                    
+                  
+                  </ul>  
+                  {% include "tweets/search_form.html" %}
+                </div>
+              </div>
+          </nav>
+      
+          <br/>
+      
+      
+          <div class="container">
+              {% block content%} 
+              {% endblock content %}
+          </div>
+
+        </div>
+      </div>
+
+<!-- right side -->
+
+      <div class="col-md-6 no-gutters">
+          <div class="rightside">
+
+              <nav class="navbar sticky-top navbar-expand-lg navbar-dark bg-dark">
+                <div class="container">
+                  <a class="navbar-brand" class="inactiveLink" >
+                      <img src="{% static 'tweet/img/monster.png' %}" width="30" height="30" alt="">
+                    </a>
+                  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                  </button>
+                
+                  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav mr-auto">
+                      <li class="nav-item active">
+                        <a class="nav-link" href="{% url 'tweets:tweet_list_view' %}">Home <span class="sr-only">(current)</span></a>
+                      </li>
+                      <li class="nav-item active">
+                        <a class="nav-link" href="{% url 'accounts:UserDetailView' request.user.username%}">Profile</a>
+                      </li>
+                      
+                    
+                    </ul>  
+                    {% include "tweets/search_form.html" %}
+                  </div>
+                </div>
+            </nav>
+        
+            <br/>
+
+            <div class="vl"></div>
+        
+            
+            <div class="container">
+                {% block content-api%} 
+                {% endblock content-api %}
+            </div>
+
+          </div>
+      </div>
+
+    </div>
+      
+    
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" crossorigin="anonymous"></script>
+    
+    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"> </script>
+
+    {% block script %}
+    
+    {% endblock %}
+
+    <script>
+      $(document).ready(function(){
+        var typingTimer;
+        var doneInternal = 1000; //ms
+        var searchQuery;
+        $("#searchNavBar input[type=text]").keyup(function(event){
+          searchQuery = $(this).val()
+
+          clearTimeout(typingTimer)
+          typingTimer = setTimeout(doneSearchTyping, doneInternal)
+        })
+        $("#searchNavBar input[type=text]").keydown(function(event){
+          clearTimeout(typingTimer)
+        })
+        function doneSearchTyping(){
+          if(searchQuery){
+            var url = "/tweets/search/?q=" + searchQuery
+            document.location.href = url
+
+          }else{
+
+          }
+        }
+      })
+
+
+
+    </script>
+
+</body>
+
+</html>
